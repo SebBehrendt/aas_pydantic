@@ -43,18 +43,18 @@ def get_types_name_dict(types: typing.List[typing.Type[aas_model.AAS | aas_model
     return types_name_dict
 
 def convert_object_store_to_pydantic_models(
-    obj_store: model.DictObjectStore, types: typing.List[type] = None
+    obj_store: model.DictObjectStore, types: typing.List[type]
 ) -> typing.List[aas_model.AAS]:
     """
     Converts an object store with AAS and submodels to pydantic models, representing the original data structure.
 
     Args:
         obj_store (model.DictObjectStore): Object store with AAS and submodels
+        types (typing.List[type]): List of types to create the pydantic models from. Can be only top level types.
 
     Returns:
         typing.List[aas_model.AAS]: List of pydantic models
     """
-    # FIXME: make types here mandatory -> template function needs to be used first to retrieve types...
     type_name_dict = get_types_name_dict(types)
     
     pydantic_submodels: typing.List[aas_model.Submodel] = []
@@ -63,7 +63,6 @@ def convert_object_store_to_pydantic_models(
             continue
         class_name = convert_util.get_class_name_from_basyx_model(identifiable)
         if not class_name in type_name_dict:
-            # TODO: create here the types based on the submodel information and save them in the type_name_dict
             pass
         pydantic_submodel = convert_submodel_to_model_instance(identifiable, type_name_dict[class_name])
         pydantic_submodels.append(pydantic_submodel)
@@ -74,7 +73,6 @@ def convert_object_store_to_pydantic_models(
             continue
         class_name = convert_util.get_class_name_from_basyx_model(identifiable)
         if not class_name in type_name_dict:
-            # TODO: create here the types based on the submodel information and save them in the type_name_dict
             pass
         pydantic_aas = convert_aas_to_pydantic_model_instance(
             identifiable, pydantic_submodels, type_name_dict[class_name]

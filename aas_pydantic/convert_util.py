@@ -22,10 +22,6 @@ class AttributeFieldInfo(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
-
-
-
-
 class AttributeInfo(AttributeFieldInfo):
     value: Any
 

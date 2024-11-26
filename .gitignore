@@ -54,3 +54,9 @@ venv.bak/
 
 # Vscode
 .vscode/
+
+
+aas_template_DeviceAAS.json
+aas_instance_DeviceAAS.json
+pydantic_types.json
+submodel_template_DeviceConfig.json
