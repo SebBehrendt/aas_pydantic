@@ -13,6 +13,7 @@ from basyx.aas import model
 
 from typing import Any, Optional, Set, Union
 from pydantic import BaseModel, ConfigDict
+
 # from aas_middleware.model.core import Reference
 from aas_pydantic import convert_util, aas_model
 
@@ -46,36 +47,51 @@ def convert_model_to_aas_template(
     aas_submodel_data_specifications = []
     for attribute_info in aas_attribute_infos:
         if typing.get_origin(attribute_info.field_info.annotation) == Union:
-            types_to_check = [type_annotation for type_annotation in typing.get_args(attribute_info.field_info.annotation) if type_annotation != NoneType]
-            optional_attribute_data_specification = convert_util.get_optional_data_specification_for_attribute(
-                attribute_info
+            types_to_check = [
+                type_annotation
+                for type_annotation in typing.get_args(
+                    attribute_info.field_info.annotation
+                )
+                if type_annotation != NoneType
+            ]
+            optional_attribute_data_specification = (
+                convert_util.get_optional_data_specification_for_attribute(
+                    attribute_info
+                )
             )
             if optional_attribute_data_specification:
-                aas_submodel_data_specifications.append(optional_attribute_data_specification)
-            union_attribute_data_specification = convert_util.get_union_data_specification_for_attribute(
-                attribute_info
+                aas_submodel_data_specifications.append(
+                    optional_attribute_data_specification
+                )
+            union_attribute_data_specification = (
+                convert_util.get_union_data_specification_for_attribute(attribute_info)
             )
             if union_attribute_data_specification:
-                aas_submodel_data_specifications.append(union_attribute_data_specification)
+                aas_submodel_data_specifications.append(
+                    union_attribute_data_specification
+                )
 
         else:
             types_to_check = [attribute_info.field_info.annotation]
 
         for type_annotation in types_to_check:
             submodel = convert_model_to_submodel_template(model_type=type_annotation)
-            attribute_data_specifications = convert_util.get_data_specification_for_attribute(
-                attribute_info, submodel
+            attribute_data_specifications = (
+                convert_util.get_data_specification_for_attribute(
+                    attribute_info, submodel
+                )
             )
             aas_submodel_data_specifications.append(attribute_data_specifications)
             if not attribute_info.field_info.is_required():
-                default_data_specification = convert_util.get_default_data_specification_for_attribute(
-                    attribute_info, submodel
+                default_data_specification = (
+                    convert_util.get_default_data_specification_for_attribute(
+                        attribute_info, submodel
+                    )
                 )
                 aas_submodel_data_specifications.append(default_data_specification)
-        
+
             if submodel and not submodel.id_short in aas_submodels:
                 aas_submodels.update({submodel.id_short: submodel})
-
 
     asset_information = model.AssetInformation(
         asset_kind=model.AssetKind.TYPE,
@@ -87,11 +103,17 @@ def convert_model_to_aas_template(
         asset_information=asset_information,
         id_short=get_template_id(model_type),
         id_=model.Identifier(get_template_id(model_type)),
-        description={"en": f"Type aas with id {get_template_id(model_type)} that contains submodel templates"},
-        submodel={
-            model.ModelReference.from_referable(submodel) for submodel in aas_submodels.values()
+        description={
+            "en": f"Type aas with id {get_template_id(model_type)} that contains submodel templates"
         },
-        embedded_data_specifications=convert_util.get_data_specification_for_model_template(model_type) + aas_submodel_data_specifications,
+        submodel={
+            model.ModelReference.from_referable(submodel)
+            for submodel in aas_submodels.values()
+        },
+        embedded_data_specifications=convert_util.get_data_specification_for_model_template(
+            model_type
+        )
+        + aas_submodel_data_specifications,
     )
     obj_store: model.DictObjectStore[model.Identifiable] = model.DictObjectStore()
     obj_store.add(basyx_aas)
@@ -101,8 +123,8 @@ def convert_model_to_aas_template(
 
 
 def convert_model_instance_to_submodel_template(
-        model_instance: aas_model.Submodel,
-    ) -> Optional[model.Submodel]:
+    model_instance: aas_model.Submodel,
+) -> Optional[model.Submodel]:
     return convert_model_to_submodel_template(type(model_instance))
 
 
@@ -117,17 +139,29 @@ def convert_model_to_submodel_template(
 
     for attribute_info in submodel_attributes:
         if typing.get_origin(attribute_info.field_info.annotation) == Union:
-            types_to_check = [type_annotation for type_annotation in typing.get_args(attribute_info.field_info.annotation) if type_annotation != NoneType]
-            optional_attribute_data_specification = convert_util.get_optional_data_specification_for_attribute(
-                attribute_info
+            types_to_check = [
+                type_annotation
+                for type_annotation in typing.get_args(
+                    attribute_info.field_info.annotation
+                )
+                if type_annotation != NoneType
+            ]
+            optional_attribute_data_specification = (
+                convert_util.get_optional_data_specification_for_attribute(
+                    attribute_info
+                )
             )
             if optional_attribute_data_specification:
-                submodel_element_data_specifications.append(optional_attribute_data_specification)
-            union_attribute_data_specification = convert_util.get_union_data_specification_for_attribute(
-                attribute_info
+                submodel_element_data_specifications.append(
+                    optional_attribute_data_specification
+                )
+            union_attribute_data_specification = (
+                convert_util.get_union_data_specification_for_attribute(attribute_info)
             )
             if union_attribute_data_specification:
-                submodel_element_data_specifications.append(union_attribute_data_specification)
+                submodel_element_data_specifications.append(
+                    union_attribute_data_specification
+                )
 
         else:
             types_to_check = [attribute_info.field_info.annotation]
@@ -137,30 +171,47 @@ def convert_model_to_submodel_template(
                 attribute_name = f"{attribute_info.name}_{counter}"
             else:
                 attribute_name = attribute_info.name
-            submodel_element = create_submodel_element_template(attribute_name=attribute_name, attribute_type=type_annotation)
-            attribute_data_specifications = convert_util.get_data_specification_for_attribute(
-                attribute_info, submodel_element
+            submodel_element = create_submodel_element_template(
+                attribute_name=attribute_name, attribute_type=type_annotation
             )
-            submodel_element_data_specifications.append(attribute_data_specifications)
-            immutable_attribute_data_specification = convert_util.get_immutable_data_specification_for_attribute(
-                attribute_info
-            )
-            if immutable_attribute_data_specification:
-                submodel_element_data_specifications.append(immutable_attribute_data_specification)
-            if not attribute_info.field_info.is_required():
-                default_data_specification = convert_util.get_default_data_specification_for_attribute(
+            attribute_data_specifications = (
+                convert_util.get_data_specification_for_attribute(
                     attribute_info, submodel_element
                 )
+            )
+            submodel_element_data_specifications.append(attribute_data_specifications)
+            immutable_attribute_data_specification = (
+                convert_util.get_immutable_data_specification_for_attribute(
+                    attribute_info
+                )
+            )
+            if immutable_attribute_data_specification:
+                submodel_element_data_specifications.append(
+                    immutable_attribute_data_specification
+                )
+            if not attribute_info.field_info.is_required():
+                default_data_specification = (
+                    convert_util.get_default_data_specification_for_attribute(
+                        attribute_info, submodel_element
+                    )
+                )
                 submodel_element_data_specifications.append(default_data_specification)
-            if submodel_element and not any(stored_submodel_element.id_short == submodel_element.id_short for stored_submodel_element in submodel_elements):
+            if submodel_element and not any(
+                stored_submodel_element.id_short == submodel_element.id_short
+                for stored_submodel_element in submodel_elements
+            ):
                 submodel_elements.append(submodel_element)
 
     basyx_submodel = model.Submodel(
         id_short=get_template_id(model_type),
         id_=model.Identifier(get_template_id(model_type)),
         # description=convert_util.get_basyx_description_from_model(model_type)=convert_util.get_basyx_description_from_model(model_type),
-        description={"en": f"Submodel with id {get_template_id(model_type)} that contains submodel elements"},
-        embedded_data_specifications=convert_util.get_data_specification_for_model_template(model_type)
+        description={
+            "en": f"Submodel with id {get_template_id(model_type)} that contains submodel elements"
+        },
+        embedded_data_specifications=convert_util.get_data_specification_for_model_template(
+            model_type
+        )
         + submodel_element_data_specifications,
         semantic_id="",
         submodel_element=submodel_elements,
@@ -171,7 +222,14 @@ def convert_model_to_submodel_template(
 def create_submodel_element_template(
     attribute_name: str,
     attribute_type: Union[
-        type[aas_model.SubmodelElementCollection], type[str], type[float], type[int], type[bool], type[tuple], type[list], type[set]
+        type[aas_model.SubmodelElementCollection],
+        type[str],
+        type[float],
+        type[int],
+        type[bool],
+        type[tuple],
+        type[list],
+        type[set],
     ],
 ) -> Optional[model.SubmodelElement]:
     """
@@ -187,7 +245,11 @@ def create_submodel_element_template(
     """
     if not attribute_type:
         return
-    if typing.get_origin(attribute_type) == list or typing.get_origin(attribute_type) == tuple or typing.get_origin(attribute_type) == set:
+    if (
+        typing.get_origin(attribute_type) == list
+        or typing.get_origin(attribute_type) == tuple
+        or typing.get_origin(attribute_type) == set
+    ):
         sml = create_submodel_element_list(attribute_name, attribute_type)
         return sml
     elif attribute_type == aas_model.Reference:
@@ -202,9 +264,7 @@ def create_submodel_element_template(
         )
         return reference_element
     elif typing.get_origin(attribute_type) is typing.Literal:
-        property = create_property(
-            attribute_name, str
-        )
+        property = create_property(attribute_name, str)
         return property
     elif issubclass(attribute_type, Enum):
         property = create_property(attribute_name, str)
@@ -246,17 +306,29 @@ def create_submodel_element_collection(
 
     for attribute_info in smc_attributes:
         if typing.get_origin(attribute_info.field_info.annotation) == Union:
-            types_to_check = [type_annotation for type_annotation in typing.get_args(attribute_info.field_info.annotation) if type_annotation != NoneType]
-            optional_attribute_data_specification = convert_util.get_optional_data_specification_for_attribute(
-                attribute_info
+            types_to_check = [
+                type_annotation
+                for type_annotation in typing.get_args(
+                    attribute_info.field_info.annotation
+                )
+                if type_annotation != NoneType
+            ]
+            optional_attribute_data_specification = (
+                convert_util.get_optional_data_specification_for_attribute(
+                    attribute_info
+                )
             )
             if optional_attribute_data_specification:
-                submodel_element_data_specifications.append(optional_attribute_data_specification)
-            union_attribute_data_specification = convert_util.get_union_data_specification_for_attribute(
-                attribute_info
+                submodel_element_data_specifications.append(
+                    optional_attribute_data_specification
+                )
+            union_attribute_data_specification = (
+                convert_util.get_union_data_specification_for_attribute(attribute_info)
             )
             if union_attribute_data_specification:
-                submodel_element_data_specifications.append(union_attribute_data_specification)
+                submodel_element_data_specifications.append(
+                    union_attribute_data_specification
+                )
         elif attribute_info.field_info.annotation == NoneType:
             continue
         else:
@@ -267,22 +339,35 @@ def create_submodel_element_collection(
                 attribute_name = f"{attribute_info.name}_{counter}"
             else:
                 attribute_name = attribute_info.name
-            submodel_element = create_submodel_element_template(attribute_name=attribute_name, attribute_type=type_annotation)
-            attribute_data_specifications = convert_util.get_data_specification_for_attribute(
-                attribute_info, submodel_element
+            submodel_element = create_submodel_element_template(
+                attribute_name=attribute_name, attribute_type=type_annotation
             )
-            submodel_element_data_specifications.append(attribute_data_specifications)
-            immutable_attribute_data_specification = convert_util.get_immutable_data_specification_for_attribute(
-                attribute_info
-            )
-            if immutable_attribute_data_specification:
-                submodel_element_data_specifications.append(immutable_attribute_data_specification)
-            if not attribute_info.field_info.is_required():
-                default_data_specification = convert_util.get_default_data_specification_for_attribute(
+            attribute_data_specifications = (
+                convert_util.get_data_specification_for_attribute(
                     attribute_info, submodel_element
                 )
+            )
+            submodel_element_data_specifications.append(attribute_data_specifications)
+            immutable_attribute_data_specification = (
+                convert_util.get_immutable_data_specification_for_attribute(
+                    attribute_info
+                )
+            )
+            if immutable_attribute_data_specification:
+                submodel_element_data_specifications.append(
+                    immutable_attribute_data_specification
+                )
+            if not attribute_info.field_info.is_required():
+                default_data_specification = (
+                    convert_util.get_default_data_specification_for_attribute(
+                        attribute_info, submodel_element
+                    )
+                )
                 submodel_element_data_specifications.append(default_data_specification)
-            if submodel_element and not any(stored_submodel_element.id_short == submodel_element.id_short for stored_submodel_element in value):
+            if submodel_element and not any(
+                stored_submodel_element.id_short == submodel_element.id_short
+                for stored_submodel_element in value
+            ):
                 value.append(submodel_element)
 
     id_short = get_template_id(model_sec)
@@ -291,15 +376,21 @@ def create_submodel_element_collection(
         id_short=id_short,
         value=value,
         # description=convert_util.get_basyx_description_from_model(model_sec),
-        description={"en": f"Submodel element collection with id {id_short} that contains submodel elements"},
-        embedded_data_specifications=convert_util.get_data_specification_for_model_template(model_sec) + submodel_element_data_specifications,
+        description={
+            "en": f"Submodel element collection with id {id_short} that contains submodel elements"
+        },
+        embedded_data_specifications=convert_util.get_data_specification_for_model_template(
+            model_sec
+        )
+        + submodel_element_data_specifications,
         semantic_id="",
     )
     return smc
 
+
 def patch_id_short_with_temp_attribute(
-        submodel_element_collection: model.SubmodelElementCollection
-    ) -> None:
+    submodel_element_collection: model.SubmodelElementCollection,
+) -> None:
     """
     Patch the id_short of a SubmodelElementCollection as an attribute in the value of the SubmodelElementCollection, to make it accesible after retrieving from the value list.
 
@@ -315,7 +406,8 @@ def patch_id_short_with_temp_attribute(
 
 
 def create_submodel_element_list(
-    name: str, attribute_type: Union[type[tuple], type[list], type[set]]) -> model.SubmodelElementList:
+    name: str, attribute_type: Union[type[tuple], type[list], type[set]]
+) -> model.SubmodelElementList:
     submodel_elements = []
     submodel_element_ids = OrderedDict()
     for el in typing.get_args(attribute_type):
@@ -332,14 +424,21 @@ def create_submodel_element_list(
         submodel_elements.append(submodel_element)
 
     if submodel_elements and isinstance(submodel_elements[0], model.Property):
-        if len(typing.get_args(attribute_type)) > 1 and not all(arg is typing.get_args(attribute_type)[0] for arg in typing.get_args(attribute_type)):
+        if len(typing.get_args(attribute_type)) > 1 and not all(
+            arg is typing.get_args(attribute_type)[0]
+            for arg in typing.get_args(attribute_type)
+        ):
             raise ValueError(
                 f"Submodel element list with different types is not supported. Please use a SubmodelElementCollection instead."
             )
         value_type_list_element = submodel_elements[0].value_type
         type_value_list_element = type(submodel_elements[0])
     elif submodel_elements and isinstance(
-        submodel_elements[0], model.Reference | model.SubmodelElementCollection | model.ReferenceElement | model.SubmodelElementList
+        submodel_elements[0],
+        model.Reference
+        | model.SubmodelElementCollection
+        | model.ReferenceElement
+        | model.SubmodelElementList,
     ):
         value_type_list_element = None
         type_value_list_element = type(submodel_elements[0])
@@ -357,7 +456,9 @@ def create_submodel_element_list(
         ordered = True
         iterable_type = "list"
     else:
-        raise ValueError(f"Type {attribute_type} is not supported for SubmodelElementList, provided subclass of list, tuple or set")
+        raise ValueError(
+            f"Type {attribute_type} is not supported for SubmodelElementList, provided subclass of list, tuple or set"
+        )
 
     sml = model.SubmodelElementList(
         id_short=f"{iterable_type}_of_{get_template_id(typing.get_args(attribute_type)[0])}",
@@ -379,10 +480,7 @@ def create_file(attribute_type: type[aas_model.File]) -> model.File:
     Returns:
         model.File: Basyx file.
     """
-    return model.File(
-        id_short=get_template_id(attribute_type), 
-        content_type="unknown"
-        )
+    return model.File(id_short=get_template_id(attribute_type), content_type="unknown")
 
 
 def create_blob(attribute_type: type[aas_model.Blob]) -> model.Blob:
@@ -395,7 +493,4 @@ def create_blob(attribute_type: type[aas_model.Blob]) -> model.Blob:
     Returns:
         model.File: Basyx file.
     """
-    return model.Blob(
-        id_short=get_template_id(attribute_type),
-        content_type="unknown"
-    )
+    return model.Blob(id_short=get_template_id(attribute_type), content_type="unknown")

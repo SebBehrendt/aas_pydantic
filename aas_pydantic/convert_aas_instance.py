@@ -14,7 +14,10 @@ from aas_pydantic.convert_util import (
     unpatch_id_short_from_temp_attribute,
 )
 
-def get_types_name_dict(types: typing.List[typing.Type[aas_model.AAS | aas_model.Submodel]]) -> typing.Dict[str, type]:
+
+def get_types_name_dict(
+    types: typing.List[typing.Type[aas_model.AAS | aas_model.Submodel]],
+) -> typing.Dict[str, type]:
     """
     Returns a dictionary with the type names as keys and the types as values.
 
@@ -35,12 +38,17 @@ def get_types_name_dict(types: typing.List[typing.Type[aas_model.AAS | aas_model
                         contained_type = typing.get_args(contained_type)[0]
                     if not issubclass(contained_type, aas_model.Submodel):
                         continue
-                    types_name_dict[contained_type.__name__.split(".")[-1]] = contained_type
+                    types_name_dict[contained_type.__name__.split(".")[-1]] = (
+                        contained_type
+                    )
                 continue
             if not issubclass(attribute_type.annotation, aas_model.Submodel):
                 continue
-            types_name_dict[attribute_type.annotation.__name__.split(".")[-1]] = attribute_type.annotation
+            types_name_dict[attribute_type.annotation.__name__.split(".")[-1]] = (
+                attribute_type.annotation
+            )
     return types_name_dict
+
 
 def convert_object_store_to_pydantic_models(
     obj_store: model.DictObjectStore, types: typing.List[type]
@@ -56,7 +64,7 @@ def convert_object_store_to_pydantic_models(
         typing.List[aas_model.AAS]: List of pydantic models
     """
     type_name_dict = get_types_name_dict(types)
-    
+
     pydantic_submodels: typing.List[aas_model.Submodel] = []
     for identifiable in obj_store:
         if not isinstance(identifiable, model.Submodel):
@@ -64,7 +72,9 @@ def convert_object_store_to_pydantic_models(
         class_name = convert_util.get_class_name_from_basyx_model(identifiable)
         if not class_name in type_name_dict:
             pass
-        pydantic_submodel = convert_submodel_to_model_instance(identifiable, type_name_dict[class_name])
+        pydantic_submodel = convert_submodel_to_model_instance(
+            identifiable, type_name_dict[class_name]
+        )
         pydantic_submodels.append(pydantic_submodel)
 
     pydantic_aas_list: typing.List[aas_model.AAS] = []
@@ -102,11 +112,14 @@ def convert_aas_to_pydantic_model_instance(
     for sm in pydantic_submodels:
         if not sm.id in aas_submodel_ids:
             continue
-        attribute_names_of_submodel = convert_util.get_attribute_names_from_basyx_template(
-            aas, sm.id
+        attribute_names_of_submodel = (
+            convert_util.get_attribute_names_from_basyx_template(aas, sm.id)
         )
         if len(attribute_names_of_submodel) > 1:
-            raise ValueError("Multiple attribute names found for submodel:", attribute_names_of_submodel)
+            raise ValueError(
+                "Multiple attribute names found for submodel:",
+                attribute_names_of_submodel,
+            )
         attribute_name_of_submodel = attribute_names_of_submodel[0]
         dict_model_instantiation.update({attribute_name_of_submodel: sm.model_dump()})
     return TypeAdapter(model_type).validate_python(dict_model_instantiation)
@@ -125,9 +138,13 @@ def get_submodel_element_value(
         aas_model.SubmodelElement: Value of the SubmodelElement.
     """
     if isinstance(sm_element, model.SubmodelElementCollection):
-        return convert_submodel_collection_to_pydantic_model(sm_element, model_type=attribute_type)
+        return convert_submodel_collection_to_pydantic_model(
+            sm_element, model_type=attribute_type
+        )
     elif isinstance(sm_element, model.SubmodelElementList):
-        return convert_submodel_list_to_pydantic_model(sm_element, model_type=attribute_type)
+        return convert_submodel_list_to_pydantic_model(
+            sm_element, model_type=attribute_type
+        )
     elif isinstance(sm_element, model.ReferenceElement):
         return convert_reference_element_to_pydantic_model(sm_element)
     elif isinstance(sm_element, model.Property):
@@ -191,7 +208,9 @@ def get_initial_dict_for_model_instantiation(
     return model_instantiation_dict
 
 
-def convert_submodel_to_model_instance(sm: model.Submodel, model_type: type[aas_model.Submodel] = None) -> aas_model.Submodel:
+def convert_submodel_to_model_instance(
+    sm: model.Submodel, model_type: type[aas_model.Submodel] = None
+) -> aas_model.Submodel:
     """
     Converts a Submodel to a Pydantic model.
 
@@ -203,9 +222,7 @@ def convert_submodel_to_model_instance(sm: model.Submodel, model_type: type[aas_
         aas_model.Submodel: Pydantic model of the submodel.
     """
     if model_type is None:
-        model_type = convert_aas_template.convert_submodel_template_to_pydatic_type(
-            sm
-        )
+        model_type = convert_aas_template.convert_submodel_template_to_pydatic_type(sm)
     dict_model_instantiation = get_initial_dict_for_model_instantiation(sm)
 
     for sm_element in sm.submodel_element:
@@ -213,7 +230,9 @@ def convert_submodel_to_model_instance(sm: model.Submodel, model_type: type[aas_
             sm, sm_element.id_short
         )
         if len(attribute_names) > 1:
-            raise ValueError("Multiple attribute names found for submodel element:", attribute_names)
+            raise ValueError(
+                "Multiple attribute names found for submodel element:", attribute_names
+            )
         attribute_name = attribute_names[0]
         attribute_type = get_type_of_attribute(model_type, attribute_name)
         attribute_value = get_submodel_element_value(sm_element, attribute_type)
@@ -226,7 +245,10 @@ def convert_submodel_to_model_instance(sm: model.Submodel, model_type: type[aas_
     return TypeAdapter(model_type).validate_python(dict_model_instantiation)
 
 
-def get_type_of_attribute(model_type: typing.Union[type[BaseModel], typing.Union[type[BaseModel]]], attribute_name: str) -> typing.Union[type[BaseModel]]:
+def get_type_of_attribute(
+    model_type: typing.Union[type[BaseModel], typing.Union[type[BaseModel]]],
+    attribute_name: str,
+) -> typing.Union[type[BaseModel]]:
     """
     Returns the type of an attribute of a Pydantic model.
 
@@ -239,14 +261,24 @@ def get_type_of_attribute(model_type: typing.Union[type[BaseModel], typing.Union
     """
     if typing.get_origin(model_type) is typing.Union:
         for contained_type in typing.get_args(model_type):
-            if hasattr(contained_type, "model_fields") and attribute_name in contained_type.model_fields:
+            if (
+                hasattr(contained_type, "model_fields")
+                and attribute_name in contained_type.model_fields
+            ):
                 return contained_type.model_fields[attribute_name].annotation
-    if hasattr(model_type, "model_fields") and attribute_name in model_type.model_fields:
+    if (
+        hasattr(model_type, "model_fields")
+        and attribute_name in model_type.model_fields
+    ):
         return model_type.model_fields[attribute_name].annotation
-    raise ValueError(f"Attribute {attribute_name} not found in model fields with attributes {list(model_type.model_fields.keys())}.")
+    raise ValueError(
+        f"Attribute {attribute_name} not found in model fields with attributes {list(model_type.model_fields.keys())}."
+    )
+
 
 def convert_submodel_collection_to_pydantic_model(
-    sm_element: model.SubmodelElementCollection, model_type: type[aas_model.SubmodelElementCollection]
+    sm_element: model.SubmodelElementCollection,
+    model_type: type[aas_model.SubmodelElementCollection],
 ) -> aas_model.SubmodelElementCollection:
     """
     Converts a SubmodelElementCollection to a Pydantic model.
@@ -264,7 +296,9 @@ def convert_submodel_collection_to_pydantic_model(
             sm_element, sub_sm_element.id_short
         )
         if len(attribute_names) > 1:
-            raise ValueError("Multiple attribute names found for submodel element:", attribute_names)
+            raise ValueError(
+                "Multiple attribute names found for submodel element:", attribute_names
+            )
         attribute_name = attribute_names[0]
         attribute_type = get_type_of_attribute(model_type, attribute_name)
         attribute_value = get_submodel_element_value(sub_sm_element, attribute_type)
@@ -277,7 +311,11 @@ def convert_submodel_collection_to_pydantic_model(
 
 def convert_submodel_list_to_pydantic_model(
     sm_element: model.SubmodelElementList, model_type: type[typing.Any]
-) -> typing.Union[typing.List[aas_model.SubmodelElement], typing.Set[aas_model.SubmodelElement], typing.Tuple[aas_model.SubmodelElement]]:
+) -> typing.Union[
+    typing.List[aas_model.SubmodelElement],
+    typing.Set[aas_model.SubmodelElement],
+    typing.Tuple[aas_model.SubmodelElement],
+]:
     """
     Converts a SubmodelElementList to a Pydantic model.
 
@@ -292,11 +330,17 @@ def convert_submodel_list_to_pydantic_model(
         if isinstance(sme, model.SubmodelElementCollection):
             new_sme = unpatch_id_short_from_temp_attribute(sme)
             sme_pydantic_models.append(
-                convert_submodel_collection_to_pydantic_model(new_sme, model_type=typing.get_args(model_type)[0])
+                convert_submodel_collection_to_pydantic_model(
+                    new_sme, model_type=typing.get_args(model_type)[0]
+                )
             )
             repatch_id_short_to_temp_attribute(sme, new_sme)
         elif isinstance(sme, model.SubmodelElementList):
-            sme_pydantic_models.append(convert_submodel_list_to_pydantic_model(sme, model_type=typing.get_args(model_type)[0]))
+            sme_pydantic_models.append(
+                convert_submodel_list_to_pydantic_model(
+                    sme, model_type=typing.get_args(model_type)[0]
+                )
+            )
         elif isinstance(sme, model.ReferenceElement):
             sme_pydantic_models.append(convert_reference_element_to_pydantic_model(sme))
         elif isinstance(sme, model.Property):

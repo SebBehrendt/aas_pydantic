@@ -60,9 +60,7 @@ example_device = DeviceAAS(
 aas_template_objectstore = aas_pydantic.convert_model_to_aas_template(DeviceAAS)
 
 with open("aas_template_DeviceAAS.json", "w") as f:
-    basyx.aas.adapter.json.write_aas_json_file(
-        f, aas_template_objectstore
-    )
+    basyx.aas.adapter.json.write_aas_json_file(f, aas_template_objectstore)
 
 
 # Create Submodel template and serialize it to a file
@@ -93,7 +91,9 @@ print(pydantic_submodel_type.model_fields)
 
 
 # Convert BaSyx back to Pydantic model
-pydantic_submodel = aas_pydantic.convert_submodel_to_model_instance(basyx_submodel, model_type=pydantic_submodel_type)
+pydantic_submodel = aas_pydantic.convert_submodel_to_model_instance(
+    basyx_submodel, model_type=pydantic_submodel_type
+)
 pydantic_aas = aas_pydantic.convert_object_store_to_pydantic_models(
     basyx_objectstore, pydantic_aas_types
 )

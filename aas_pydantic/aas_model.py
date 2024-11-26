@@ -5,10 +5,18 @@ from typing import Annotated, Any, List, Optional, TypeVar, Union
 import typing
 
 from basyx.aas.model import AssetAdministrationShell, DictObjectStore, Submodel
-from pydantic import BaseModel, BeforeValidator, Field, ValidationError, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    BeforeValidator,
+    Field,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
 
 
 BasyxModels = AssetAdministrationShell | Submodel | DictObjectStore
+
 
 def string_does_start_with_a_character(v: str):
     assert v, "value must not be an empty string"
@@ -17,7 +25,10 @@ def string_does_start_with_a_character(v: str):
 
 
 AasIdString = Annotated[str, BeforeValidator(string_does_start_with_a_character)]
-Reference = TypeVar("Reference", bound=Annotated[str, BeforeValidator(string_does_start_with_a_character)])
+Reference = TypeVar(
+    "Reference",
+    bound=Annotated[str, BeforeValidator(string_does_start_with_a_character)],
+)
 
 
 class Referable(BaseModel):
@@ -31,6 +42,7 @@ class Referable(BaseModel):
 
     id_short: AasIdString
     description: str = ""
+
 
 class Identifiable(Referable):
     """
@@ -91,7 +103,9 @@ class AAS(Identifiable):
         for field_name, field_info in cls.model_fields.items():
             if field_name in data:
                 continue
-            if typing.get_origin(field_info.annotation) == Union and type(None) in typing.get_args(field_info.annotation):
+            if typing.get_origin(field_info.annotation) == Union and type(
+                None
+            ) in typing.get_args(field_info.annotation):
                 data[field_name] = None
         return data
 
@@ -100,7 +114,11 @@ class AAS(Identifiable):
         for field_name, field_info in self.model_fields.items():
             if field_name in ["id", "id_short", "description"]:
                 continue
-            elif typing.get_origin(field_info.annotation) == Union and type(None) in typing.get_args(field_info.annotation) and getattr(self, field_name) is None:
+            elif (
+                typing.get_origin(field_info.annotation) == Union
+                and type(None) in typing.get_args(field_info.annotation)
+                and getattr(self, field_name) is None
+            ):
                 continue
             try:
                 Submodel.model_validate(getattr(self, field_name))
@@ -118,7 +136,11 @@ def is_valid_submodel_element(submodel_element: Any) -> bool:
         return True
     elif isinstance(submodel_element, SubmodelElementCollection):
         return True
-    elif isinstance(submodel_element, list) or isinstance(submodel_element, tuple) or isinstance(submodel_element, set):
+    elif (
+        isinstance(submodel_element, list)
+        or isinstance(submodel_element, tuple)
+        or isinstance(submodel_element, set)
+    ):
         return all(is_valid_submodel_element(element) for element in submodel_element)
     elif isinstance(submodel_element, Operation):
         return True
@@ -158,6 +180,7 @@ class Operation(HasSemantics, Referable):
     input_variables: List[SubmodelElement]
     output_variables: List[SubmodelElement]
     inoutput_variables: List[SubmodelElement]
+
 
 class File(HasSemantics, Referable):
     media_type: str

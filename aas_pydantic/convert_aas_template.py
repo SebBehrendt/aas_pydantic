@@ -37,7 +37,10 @@ def convert_object_store_to_pydantic_types(
         if isinstance(identifiable, model.Submodel):
             pydantic_submodel = convert_submodel_template_to_pydatic_type(identifiable)
             pydantic_submodel_types.append(pydantic_submodel)
-            submodels_pydantic_type_mapping[identifiable.id] = (pydantic_submodel, identifiable)
+            submodels_pydantic_type_mapping[identifiable.id] = (
+                pydantic_submodel,
+                identifiable,
+            )
 
     pydantic_aas_list: typing.List[type[aas_model.AAS]] = []
     for identifiable in obj_store:
@@ -52,7 +55,9 @@ def convert_object_store_to_pydantic_types(
 
 def convert_aas_to_pydantic_type(
     aas: model.AssetAdministrationShell,
-    pydantic_submodel_types: typing.Dict[str, typing.Tuple[type[aas_model.Submodel], model.Submodel]],
+    pydantic_submodel_types: typing.Dict[
+        str, typing.Tuple[type[aas_model.Submodel], model.Submodel]
+    ],
 ) -> type[aas_model.AAS]:
     """
     Converts an AAS to a Pydantic model.
@@ -69,8 +74,10 @@ def convert_aas_to_pydantic_type(
 
     for submodel_id in aas_submodel_ids:
         pydantic_submodel_type, basyx_submodel = pydantic_submodel_types[submodel_id]
-        attribute_names_of_submodel = convert_util.get_attribute_names_from_basyx_template(
-            aas, basyx_submodel.id_short
+        attribute_names_of_submodel = (
+            convert_util.get_attribute_names_from_basyx_template(
+                aas, basyx_submodel.id_short
+            )
         )
         for attribute_name in attribute_names_of_submodel:
             attribute_type = pydantic_submodel_type
@@ -84,21 +91,18 @@ def convert_aas_to_pydantic_type(
                 )
                 continue
             if union and attribute_name in dict_dynamic_model_creation:
-                previous_attribute_type = typing.get_args(dict_dynamic_model_creation[attribute_name])[0]
-                attribute_type = typing.Union[
-                    previous_attribute_type, attribute_type
-                ]
+                previous_attribute_type = typing.get_args(
+                    dict_dynamic_model_creation[attribute_name]
+                )[0]
+                attribute_type = typing.Union[previous_attribute_type, attribute_type]
             dict_dynamic_model_creation.update(
-                {
-                    attribute_name: typing.Annotated[
-                        attribute_type, Field(examples=[])
-                    ]
-                }
+                {attribute_name: typing.Annotated[attribute_type, Field(examples=[])]}
             )
     model_type = create_model(
         aas_class_name, **dict_dynamic_model_creation, __base__=aas_model.AAS
     )
     return model_type
+
 
 def get_submodel_element_type(
     sm_element: model.SubmodelElement, immutable: bool = False
@@ -133,7 +137,9 @@ def get_submodel_element_type(
 
 
 def get_dynamic_model_creation_dict_from_submodel_element(
-    attribute_name: str, attribute_type: typing.Type[typing.Any], default_value: typing.Any = None
+    attribute_name: str,
+    attribute_type: typing.Type[typing.Any],
+    default_value: typing.Any = None,
 ) -> typing.Dict[str, typing.Any]:
     """
     Converts a SubmodelElement to a dict.
@@ -210,7 +216,10 @@ def get_initial_dict_for_dynamic_model_creation(
     # return model_creation_dict
     return {}
 
-def convert_submodel_template_to_pydatic_type(sm: model.Submodel) -> type[aas_model.Submodel]:
+
+def convert_submodel_template_to_pydatic_type(
+    sm: model.Submodel,
+) -> type[aas_model.Submodel]:
     """
     Converts a Submodel to a Pydantic model.
 
@@ -230,8 +239,12 @@ def convert_submodel_template_to_pydatic_type(sm: model.Submodel) -> type[aas_mo
         for attribute_name in attribute_names:
             optional = convert_util.is_optional_attribute_type(sm, attribute_name)
             union = convert_util.is_union_attribute_type(sm, attribute_name)
-            immutable = convert_util.is_attribute_from_basyx_model_immutable(sm, attribute_name)
-            default_value = convert_util.get_default_value_from_basyx_model(sm, sm_element.id_short)
+            immutable = convert_util.is_attribute_from_basyx_model_immutable(
+                sm, attribute_name
+            )
+            default_value = convert_util.get_default_value_from_basyx_model(
+                sm, sm_element.id_short
+            )
             attribute_type = get_submodel_element_type(sm_element, immutable)
 
             if optional:
@@ -242,11 +255,13 @@ def convert_submodel_template_to_pydatic_type(sm: model.Submodel) -> type[aas_mo
                 )
                 continue
             if union and attribute_name in dict_dynamic_model_creation:
-                attribute_type  = typing.Union[
+                attribute_type = typing.Union[
                     dict_dynamic_model_creation[attribute_name], attribute_type
                 ]
-            sme_model_creation_dict = get_dynamic_model_creation_dict_from_submodel_element(
-                attribute_name, attribute_type, default_value
+            sme_model_creation_dict = (
+                get_dynamic_model_creation_dict_from_submodel_element(
+                    attribute_name, attribute_type, default_value
+                )
             )
             dict_dynamic_model_creation.update(sme_model_creation_dict)
     model_type = create_model(
@@ -277,10 +292,16 @@ def convert_submodel_collection_to_pydantic_model(
             sm_element, sub_sm_element.id_short
         )
         for attribute_name in attribute_names:
-            optional = convert_util.is_optional_attribute_type(sm_element, attribute_name)
+            optional = convert_util.is_optional_attribute_type(
+                sm_element, attribute_name
+            )
             union = convert_util.is_union_attribute_type(sm_element, attribute_name)
-            immutable = convert_util.is_attribute_from_basyx_model_immutable(sm_element, attribute_name)
-            default_value = convert_util.get_default_value_from_basyx_model(sm_element, sub_sm_element.id_short)
+            immutable = convert_util.is_attribute_from_basyx_model_immutable(
+                sm_element, attribute_name
+            )
+            default_value = convert_util.get_default_value_from_basyx_model(
+                sm_element, sub_sm_element.id_short
+            )
             attribute_type = get_submodel_element_type(sub_sm_element, immutable)
 
             if optional:
@@ -291,9 +312,9 @@ def convert_submodel_collection_to_pydantic_model(
                 )
                 continue
             if union and attribute_name in dict_dynamic_model_creation:
-                attribute_type  = typing.Union[
+                attribute_type = typing.Union[
                     dict_dynamic_model_creation[attribute_name], attribute_type
-                ] 
+                ]
             dict_sme = get_dynamic_model_creation_dict_from_submodel_element(
                 attribute_name, attribute_type, default_value
             )
@@ -308,7 +329,11 @@ def convert_submodel_collection_to_pydantic_model(
 
 def convert_submodel_list_to_pydantic_model(
     sm_element: model.SubmodelElementList, immutable: bool = False
-) -> type[typing.Union[typing.List[aas_model.SubmodelElement], typing.Set[aas_model.SubmodelElement]]]:
+) -> type[
+    typing.Union[
+        typing.List[aas_model.SubmodelElement], typing.Set[aas_model.SubmodelElement]
+    ]
+]:
     """
     Converts a SubmodelElementList to a Pydantic model.
 
@@ -319,12 +344,18 @@ def convert_submodel_list_to_pydantic_model(
         typing.List[aas_model.SubmodelElement]: List of Pydantic models of the submodel elements.
     """
     if sm_element.value_type_list_element is not None:
-        value_type = convert_xsdtype_to_primitive_type(sm_element.value_type_list_element)
+        value_type = convert_xsdtype_to_primitive_type(
+            sm_element.value_type_list_element
+        )
     else:
         sm_element_value = sm_element.value[0]
         if isinstance(sm_element_value, model.SubmodelElementCollection):
-            new_sm_element_value = unpatch_id_short_from_temp_attribute(sm_element_value)
-            value_type = convert_submodel_collection_to_pydantic_model(new_sm_element_value)
+            new_sm_element_value = unpatch_id_short_from_temp_attribute(
+                sm_element_value
+            )
+            value_type = convert_submodel_collection_to_pydantic_model(
+                new_sm_element_value
+            )
             repatch_id_short_to_temp_attribute(sm_element_value, new_sm_element_value)
 
         elif isinstance(sm_element_value, model.SubmodelElementList):
@@ -332,7 +363,9 @@ def convert_submodel_list_to_pydantic_model(
         elif isinstance(sm_element_value, model.ReferenceElement):
             value_type = convert_reference_element_to_pydantic_model(sm_element_value)
         elif isinstance(sm_element_value, model.RelationshipElement):
-            value_type = convert_relationship_element_to_pydantic_model(sm_element_value)
+            value_type = convert_relationship_element_to_pydantic_model(
+                sm_element_value
+            )
         elif isinstance(sm_element_value, model.Property):
             value_type = convert_property_to_pydantic_model(sm_element_value)
         else:

@@ -196,7 +196,7 @@ with open("pydantic_types.json", "w") as f:
 
 ```
 
-This example shows, how simple integration between Submodel templates and JSON Schema can be achieved. The geneated JSON Schema could, e.g. be used in code [generation tools for pydantic models](https://github.com/koxudaxi/datamodel-code-generator) to have defined pydantic types for the submodel templates.
+This example shows, how simple integration between Submodel templates and JSON Schema can be achieved. The geneated JSON Schema could, e.g. be used in code [generation tools for pydantic models](https://github.com/koxudaxi/datamodel-code-generator) to have defined pydantic types for the submodel templates. For more integration, check out [aas-middleware](https://github.com/sdm4fzi/aas_middleware), a python package for industrial data  and software integration based on AAS.
 
 
 ## Conversion Capabilities

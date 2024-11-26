@@ -15,7 +15,7 @@ with open(
 # Convert the basyx object store to pydantic types
 pydantic_types = aas_pydantic.convert_object_store_to_pydantic_types(basyx_object_store)
 
-assert len(pydantic_types) == 1 #  only one model contained for the submodel template
+assert len(pydantic_types) == 1  #  only one model contained for the submodel template
 
 # serialize the pydantic types as JSON Schema to a file
 with open("pydantic_types.json", "w") as f:

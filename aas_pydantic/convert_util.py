@@ -18,7 +18,7 @@ from aas_pydantic import aas_model
 class AttributeFieldInfo(BaseModel):
     name: str
     field_info: FieldInfo
-    
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
@@ -27,7 +27,11 @@ class AttributeInfo(AttributeFieldInfo):
 
 
 def get_attribute_field_infos(
-    obj: Union[type[aas_model.AAS], type[aas_model.Submodel], type[aas_model.SubmodelElementCollection]]
+    obj: Union[
+        type[aas_model.AAS],
+        type[aas_model.Submodel],
+        type[aas_model.SubmodelElementCollection],
+    ]
 ) -> List[AttributeFieldInfo]:
     """
     Returns a dictionary of all attributes of an object that are not None, do not start with an underscore and are not standard attributes of the aas object.
@@ -69,7 +73,9 @@ def get_attribute_infos(
             continue
         attribute_value = getattr(obj, attribute_name)
         attribute_infos.append(
-            AttributeInfo(name=attribute_name, field_info=field_info, value=attribute_value)
+            AttributeInfo(
+                name=attribute_name, field_info=field_info, value=attribute_value
+            )
         )
     return attribute_infos
 
@@ -158,10 +164,9 @@ def get_class_name_from_basyx_model(
         f"No class name found in item with id {item.id_short} and type {type(item)}"
     )
 
+
 def get_class_name_from_basyx_template(
-    item: typing.Union[
-        model.Submodel, model.SubmodelElementCollection
-    ]
+    item: typing.Union[model.Submodel, model.SubmodelElementCollection]
 ) -> str:
     """
     Returns the class name of an basyx model from the data specifications.
@@ -221,10 +226,10 @@ def get_attribute_name_from_basyx_model(
 
 
 def get_attribute_names_from_basyx_template(
-        item: typing.Union[
-            model.AssetAdministrationShell, model.Submodel, model.SubmodelElementCollection
-        ],
-        referenced_item_id_short: str,
+    item: typing.Union[
+        model.AssetAdministrationShell, model.Submodel, model.SubmodelElementCollection
+    ],
+    referenced_item_id_short: str,
 ) -> List[str]:
     """
     Returns the attribute name of the referenced element of the item.
@@ -242,29 +247,31 @@ def get_attribute_names_from_basyx_template(
     if not item.embedded_data_specifications:
         return [stringcase.snakecase(referenced_item_id_short)]
     return get_attribute_name_from_basyx_model(item, referenced_item_id_short)
-    
+
 
 def get_data_specification_for_model_template(
     model_type: typing.Union[
-        type[aas_model.AAS], type[aas_model.Submodel], type[aas_model.SubmodelElementCollection]
+        type[aas_model.AAS],
+        type[aas_model.Submodel],
+        type[aas_model.SubmodelElementCollection],
     ],
 ) -> typing.List[model.EmbeddedDataSpecification]:
-    return [model.EmbeddedDataSpecification(
-        data_specification=model.ExternalReference(
-            key=(
-                model.Key(
-                    type_=model.KeyTypes.GLOBAL_REFERENCE,
-                    value=(
-                        get_template_id(model_type)
+    return [
+        model.EmbeddedDataSpecification(
+            data_specification=model.ExternalReference(
+                key=(
+                    model.Key(
+                        type_=model.KeyTypes.GLOBAL_REFERENCE,
+                        value=(get_template_id(model_type)),
                     ),
                 ),
             ),
-        ),
-        data_specification_content=model.DataSpecificationIEC61360(
-            preferred_name=model.LangStringSet({"en": "class"}),
-            value=get_template_id(model_type),
-        ),
-    )]
+            data_specification_content=model.DataSpecificationIEC61360(
+                preferred_name=model.LangStringSet({"en": "class"}),
+                value=get_template_id(model_type),
+            ),
+        )
+    ]
 
 
 def get_data_specification_for_model(
@@ -272,30 +279,33 @@ def get_data_specification_for_model(
         aas_model.AAS, aas_model.Submodel, aas_model.SubmodelElementCollection
     ],
 ) -> typing.List[model.EmbeddedDataSpecification]:
-    return [model.EmbeddedDataSpecification(
-        data_specification=model.ExternalReference(
-            key=(
-                model.Key(
-                    type_=model.KeyTypes.GLOBAL_REFERENCE,
-                    value=(
-                        item.id
-                        if isinstance(
-                            item, typing.Union[aas_model.AAS, aas_model.Submodel]
-                        )
-                        else item.id_short
+    return [
+        model.EmbeddedDataSpecification(
+            data_specification=model.ExternalReference(
+                key=(
+                    model.Key(
+                        type_=model.KeyTypes.GLOBAL_REFERENCE,
+                        value=(
+                            item.id
+                            if isinstance(
+                                item, typing.Union[aas_model.AAS, aas_model.Submodel]
+                            )
+                            else item.id_short
+                        ),
                     ),
                 ),
             ),
-        ),
-        data_specification_content=model.DataSpecificationIEC61360(
-            preferred_name=model.LangStringSet({"en": "class"}),
-            value=item.__class__.__name__.split(".")[-1],
-        ),
-    )]
+            data_specification_content=model.DataSpecificationIEC61360(
+                preferred_name=model.LangStringSet({"en": "class"}),
+                value=item.__class__.__name__.split(".")[-1],
+            ),
+        )
+    ]
+
 
 def get_model_keys_for_data_specification(
-    item: typing.Union[NoneType, 
-        aas_model.AAS, aas_model.Submodel, aas_model.SubmodelElementCollection
+    item: typing.Union[
+        NoneType, aas_model.AAS, aas_model.Submodel, aas_model.SubmodelElementCollection
     ] = None,
 ) -> typing.Tuple[model.Key]:
     if item is None:
@@ -310,9 +320,7 @@ def get_model_keys_for_data_specification(
             type_=model.KeyTypes.GLOBAL_REFERENCE,
             value=(
                 item.id
-                if isinstance(
-                    item, typing.Union[aas_model.AAS, aas_model.Submodel]
-                )
+                if isinstance(item, typing.Union[aas_model.AAS, aas_model.Submodel])
                 else item.id_short
             ),
         ),
@@ -333,15 +341,17 @@ def get_data_specification_for_attribute(
         ),
     )
 
+
 def get_optional_data_specification_for_attribute(
-    attribute_field_info: AttributeFieldInfo
+    attribute_field_info: AttributeFieldInfo,
 ) -> typing.Optional[model.EmbeddedDataSpecification]:
-    if not (typing.get_origin(attribute_field_info.field_info.annotation) is Union and type(None) in typing.get_args(
-        attribute_field_info.field_info.annotation
-    )):
+    if not (
+        typing.get_origin(attribute_field_info.field_info.annotation) is Union
+        and type(None) in typing.get_args(attribute_field_info.field_info.annotation)
+    ):
         return
     model_keys = get_model_keys_for_data_specification()
-    
+
     return model.EmbeddedDataSpecification(
         data_specification=model.ExternalReference(
             key=model_keys,
@@ -354,7 +364,7 @@ def get_optional_data_specification_for_attribute(
 
 
 def get_immutable_data_specification_for_attribute_name(
-    attribute_name: str
+    attribute_name: str,
 ) -> model.EmbeddedDataSpecification:
     model_keys = get_model_keys_for_data_specification()
     return model.EmbeddedDataSpecification(
@@ -369,17 +379,21 @@ def get_immutable_data_specification_for_attribute_name(
 
 
 def get_immutable_data_specification_for_attribute(
-    attribute_field_info: AttributeFieldInfo
+    attribute_field_info: AttributeFieldInfo,
 ) -> typing.Optional[model.EmbeddedDataSpecification]:
     if not typing.get_origin(attribute_field_info.field_info.annotation) == tuple:
         return
-    return get_immutable_data_specification_for_attribute_name(attribute_field_info.name)
+    return get_immutable_data_specification_for_attribute_name(
+        attribute_field_info.name
+    )
 
 
-def get_default_data_specification_for_attribute(attribute_field_info: AttributeFieldInfo, 
-                                                 basyx_attribute: typing.Union[NoneType, 
-        aas_model.AAS, aas_model.Submodel, aas_model.SubmodelElementCollection
-    ]) -> typing.Optional[model.EmbeddedDataSpecification]:
+def get_default_data_specification_for_attribute(
+    attribute_field_info: AttributeFieldInfo,
+    basyx_attribute: typing.Union[
+        NoneType, aas_model.AAS, aas_model.Submodel, aas_model.SubmodelElementCollection
+    ],
+) -> typing.Optional[model.EmbeddedDataSpecification]:
     model_keys = get_model_keys_for_data_specification(basyx_attribute)
     return model.EmbeddedDataSpecification(
         data_specification=model.ExternalReference(
@@ -391,13 +405,24 @@ def get_default_data_specification_for_attribute(attribute_field_info: Attribute
         ),
     )
 
+
 def get_union_data_specification_for_attribute(
-    attribute_field_info: AttributeFieldInfo
+    attribute_field_info: AttributeFieldInfo,
 ) -> typing.Optional[model.EmbeddedDataSpecification]:
-    if not (typing.get_origin(attribute_field_info.field_info.annotation) == Union and len([arg for arg in typing.get_args(attribute_field_info.field_info.annotation) if arg != NoneType]) > 1):
+    if not (
+        typing.get_origin(attribute_field_info.field_info.annotation) == Union
+        and len(
+            [
+                arg
+                for arg in typing.get_args(attribute_field_info.field_info.annotation)
+                if arg != NoneType
+            ]
+        )
+        > 1
+    ):
         return
     model_keys = get_model_keys_for_data_specification()
-    
+
     return model.EmbeddedDataSpecification(
         data_specification=model.ExternalReference(
             key=model_keys,
@@ -410,10 +435,10 @@ def get_union_data_specification_for_attribute(
 
 
 def get_default_value_from_basyx_model(
-        item: Union[
-            model.AssetAdministrationShell, model.Submodel, model.SubmodelElementCollection
-        ],
-        attribute_id: str
+    item: Union[
+        model.AssetAdministrationShell, model.Submodel, model.SubmodelElementCollection
+    ],
+    attribute_id: str,
 ) -> typing.Any:
     """
     Returns the default value of an attribute
@@ -426,17 +451,21 @@ def get_default_value_from_basyx_model(
         bool: If the attribute is optional
     """
     if not item.embedded_data_specifications:
-        return 
+        return
     for data_spec in item.embedded_data_specifications:
         content = data_spec.data_specification_content
         if not isinstance(content, model.DataSpecificationIEC61360):
             continue
         if not (content.preferred_name.get("en") == "default"):
             continue
-        if not any(key.value == attribute_id for key in data_spec.data_specification.key):
+        if not any(
+            key.value == attribute_id for key in data_spec.data_specification.key
+        ):
             continue
         return content.value
-    return 
+    return
+
+
 def is_attribute_from_basyx_model_immutable(
     item: typing.Union[
         model.AssetAdministrationShell, model.Submodel, model.SubmodelElementCollection
@@ -469,10 +498,10 @@ def is_attribute_from_basyx_model_immutable(
 
 
 def is_optional_attribute_type(
-        item: Union[
-            model.AssetAdministrationShell, model.Submodel, model.SubmodelElementCollection
-        ],
-        attribute_name: str
+    item: Union[
+        model.AssetAdministrationShell, model.Submodel, model.SubmodelElementCollection
+    ],
+    attribute_name: str,
 ) -> bool:
     """
     Returns if an attribute of an aas is optional.
@@ -490,16 +519,20 @@ def is_optional_attribute_type(
         content = data_spec.data_specification_content
         if not isinstance(content, model.DataSpecificationIEC61360):
             continue
-        if not (content.preferred_name.get("en") == "optional" and content.value == attribute_name):
+        if not (
+            content.preferred_name.get("en") == "optional"
+            and content.value == attribute_name
+        ):
             continue
         return True
     return False
 
+
 def is_union_attribute_type(
-        item: Union[
-            model.AssetAdministrationShell, model.Submodel, model.SubmodelElementCollection
-        ],
-        attribute_name: str
+    item: Union[
+        model.AssetAdministrationShell, model.Submodel, model.SubmodelElementCollection
+    ],
+    attribute_name: str,
 ) -> bool:
     """
     Returns if an attribute of an aas is optional.
@@ -517,14 +550,20 @@ def is_union_attribute_type(
         content = data_spec.data_specification_content
         if not isinstance(content, model.DataSpecificationIEC61360):
             continue
-        if not (content.preferred_name.get("en") == "union" and content.value == attribute_name):
+        if not (
+            content.preferred_name.get("en") == "union"
+            and content.value == attribute_name
+        ):
             continue
         return True
     return False
 
+
 def get_template_id(
     element: Union[
-        type[aas_model.AAS], type[aas_model.Submodel], type[aas_model.SubmodelElementCollection]
+        type[aas_model.AAS],
+        type[aas_model.Submodel],
+        type[aas_model.SubmodelElementCollection],
     ]
 ) -> str:
     return element.__name__.split(".")[-1]
@@ -585,7 +624,9 @@ def get_semantic_id_value_of_model(
     return basyx_model.semantic_id.key[0].value
 
 
-def convert_xsdtype_to_primitive_type(xsd_data_type: model.DataTypeDefXsd) -> aas_model.PrimitiveSubmodelElement:
+def convert_xsdtype_to_primitive_type(
+    xsd_data_type: model.DataTypeDefXsd,
+) -> aas_model.PrimitiveSubmodelElement:
     if xsd_data_type == datatypes.Duration:
         return str
     elif xsd_data_type == datatypes.DateTime:
@@ -624,7 +665,7 @@ def convert_xsdtype_to_primitive_type(xsd_data_type: model.DataTypeDefXsd) -> aa
     elif xsd_data_type == datatypes.NonNegativeInteger:
         return int
     elif xsd_data_type == datatypes.PositiveInteger:
-        return  int
+        return int
     elif xsd_data_type == datatypes.UnsignedLong:
         return int
     elif xsd_data_type == datatypes.UnsignedInt:
@@ -641,7 +682,9 @@ def convert_xsdtype_to_primitive_type(xsd_data_type: model.DataTypeDefXsd) -> aa
         return str
 
 
-def convert_primitive_type_to_xsdtype(primitive_type: aas_model.PrimitiveSubmodelElement) -> model.DataTypeDefXsd:
+def convert_primitive_type_to_xsdtype(
+    primitive_type: aas_model.PrimitiveSubmodelElement,
+) -> model.DataTypeDefXsd:
     if primitive_type == str:
         return datatypes.String
     elif primitive_type == datetime.datetime:
@@ -658,7 +701,7 @@ def convert_primitive_type_to_xsdtype(primitive_type: aas_model.PrimitiveSubmode
         return datatypes.Integer
     else:
         raise NotImplementedError("Type not implemented:", primitive_type)
-    
+
 
 def unpatch_id_short_from_temp_attribute(smec: model.SubmodelElementCollection):
     """
@@ -672,7 +715,9 @@ def unpatch_id_short_from_temp_attribute(smec: model.SubmodelElementCollection):
     no_temp_values = []
     id_short = None
     for sm_element in smec.value:
-        if isinstance(sm_element, model.Property) and sm_element.id_short.startswith("temp_id_short_attribute"):
+        if isinstance(sm_element, model.Property) and sm_element.id_short.startswith(
+            "temp_id_short_attribute"
+        ):
             id_short = sm_element.value
             continue
         no_temp_values.append(sm_element)
@@ -683,17 +728,20 @@ def unpatch_id_short_from_temp_attribute(smec: model.SubmodelElementCollection):
         smec.parent = None
         smec.id_short = new_id_short
         return smec
-        
+
     for value in no_temp_values:
         smec.value.remove(value)
     new_smec = model.SubmodelElementCollection(
-        id_short=id_short, value=no_temp_values,
+        id_short=id_short,
+        value=no_temp_values,
         embedded_data_specifications=smec.embedded_data_specifications,
     )
     return new_smec
-        
 
-def repatch_id_short_to_temp_attribute(smec: model.SubmodelElementCollection, temp_smec: model.SubmodelElementCollection):
+
+def repatch_id_short_to_temp_attribute(
+    smec: model.SubmodelElementCollection, temp_smec: model.SubmodelElementCollection
+):
     """
     Repatches the id_short attribute of a SubmodelElementCollection to the temporary attribute.
 
