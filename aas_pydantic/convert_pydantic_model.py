@@ -215,7 +215,10 @@ def create_submodel_element_collection(
             submodel_element_data_specifications.append(
                 immutable_attribute_data_specification
             )
-        if not attribute_info.field_info.is_required():
+        if (
+            not attribute_info.field_info.is_required()
+            and attribute_info.field_info.default
+        ):
             default_data_specification = (
                 convert_util.get_default_data_specification_for_attribute(
                     attribute_info, sme
