@@ -142,7 +142,7 @@ def create_submodel_element(
     Returns:
         model.SubmodelElement: basyx SubmodelElement
     """
-    if not attribute_value:
+    if not attribute_value and not (isinstance(attribute_value, bool) or attribute_value == 0):
         return
     if isinstance(attribute_value, aas_model.SubmodelElementCollection):
         smc = create_submodel_element_collection(attribute_value)
@@ -173,7 +173,6 @@ def create_submodel_element(
         return create_blob(attribute_value)
     else:
         property = create_property(attribute_name, attribute_value)
-
         return property
 
 
