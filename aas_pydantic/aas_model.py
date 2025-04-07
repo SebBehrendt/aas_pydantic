@@ -6,6 +6,7 @@ import typing
 
 from basyx.aas.model import AssetAdministrationShell, DictObjectStore, Submodel
 from pydantic import (
+    AfterValidator,
     BaseModel,
     BeforeValidator,
     Field,
@@ -24,10 +25,10 @@ def string_does_start_with_a_character(v: str):
     return v
 
 
-AasIdString = Annotated[str, BeforeValidator(string_does_start_with_a_character)]
+AasIdString = Annotated[str, AfterValidator(string_does_start_with_a_character)]
 Reference = TypeVar(
     "Reference",
-    bound=Annotated[str, BeforeValidator(string_does_start_with_a_character)],
+    bound=Annotated[str, AfterValidator(string_does_start_with_a_character)],
 )
 
 
